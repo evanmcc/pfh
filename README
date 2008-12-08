@@ -1,0 +1,70 @@
+INSTALLATION:
+
+    Should be pretty easy, just drop into your local directory and
+add 'from pfh import *' (or import pfh if you want to type pfh.
+about a billion times per file).
+
+USAGE: 
+    For just about every tag type in HTML there's a corresponding 
+function.  That function will return text and takes any number of 
+arguments.  There's no validation, so it helps to know HTML.
+    
+    NB: <del> and <def> have namespace collisions with python and 
+    are not currently implemented.  Maybe someday if there's demand.
+
+Attributes are added as additional keyword arguments.  eg:
+
+a('linky!', href="http://foo.com/bar/", alt='foo')
+
+will generate:
+
+<a alt="foo" href="http://foo.com/bar/">linky!</a>
+
+a more elaborate example:
+
+from pfh import *
+
+def main():
+    print html(head(title('foo')),
+               body(h1('title'),
+                    em('strong!'),
+                    br(),
+                    a('linky!', href="http://foo.com/bar/",
+		      alt='foo')))
+
+if __name__ == '__main__':
+    main()
+
+Which, when run results in: 
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head><title>foo</title></head>
+<body>
+<h1>title</h1>
+<em>strong!</em>
+<br/>
+<a alt="foo" href="http://foo.com/bar/">linky!</a>
+</body>
+</html>
+
+Not the prettiest HTML, but servicable, and hopefully you won't 
+need to use it much.
+
+CREDITS & LICENSE: 
+    Written by Evan McClanahan <mcclanahan@gmail.com>
+    Copyright 2008 under the MIT LICENSE.
+    See MIT-LICENSE in this repository for details
+    
+    As per the license, go nuts!  But it'd be cool if you could let 
+me know if this code was useful to you.
+
+    Most of the ideas here are pretty obvious, but this package is 
+pretty much weak version of one of the common lisp html generation
+packages.  I'd link to it but I can't find the link at the moment.
+
+RATIONALE:
+
+    I don't like templates, since they're generally poorly 
+supported by emacs and other tools.  Plus it was easy.
