@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pfh import *
+from sys import argv
 
 def main():
     var = html(head(title('foo')),
@@ -14,5 +15,14 @@ def main():
     return var
 
 if __name__ == '__main__':
-    for i in xrange(10000):
-        main()
+    try:
+        iter = int(argv[1])
+    except:
+        iter = 1
+
+    pr = False
+    for i in xrange(iter):
+        if pr:
+            print main()
+        else:
+            main
