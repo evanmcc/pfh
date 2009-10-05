@@ -1,5 +1,5 @@
 
-import inspect
+from inspect import getframeinfo, currentframe
 
 wc3doc = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n\
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n'
@@ -9,25 +9,30 @@ wc3doc = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n\
 #
 
 def wrap(*blob, **kw):
-    tag = inspect.stack()[1][3] 
+    tag = getframeinfo(currentframe().f_back)[2]
     cr = ''
     if len(blob) > 1: 
         cr = '\n'
     return starttag(tag, cr, False, **kw) + endtag(tag, cr, *blob)
 
 def bare(*blob, **kw):
-    tag = inspect.stack()[1][3]
+    tag = getframeinfo(currentframe().f_back)[2]
     return starttag(tag, '', True, **kw)
 
 def starttag(tag, cr, bare, **kw):
     out = at = bre = ''
     lk = len(kw)
+    fix = ''
     if bare: 
         bre = '/'
     if lk > 0:
         at += ' '
         for (i, k) in enumerate(kw):
-            at += k + '="' + kw[k] + '"'
+            if k[-1] == '_':
+                fix = k[:-1]
+                at += fix + '="' + kw[k] + '"'
+            else:
+                at += k + '="' + kw[k] + '"'
             if i != lk-1:
                 at += ' '
     out = '<'+tag+at+bre+'>'+cr
