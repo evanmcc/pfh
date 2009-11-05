@@ -1,23 +1,34 @@
 
 from inspect import getframeinfo, currentframe
+from types import TupleType, ListType
 from sys import _getframe
 
-wc3doc = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n\
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n'
+#begin library code.
+
+wc3doc = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n'''
 
 #
 #  CORE GENERATION FUNCTIONS
 #
 
 def wrap(*blob, **kw):
-    tag = _getframe().f_back.f_code.co_name
+    if kw.has_key('tagname'):
+        tag = kw['tagname']
+        del kw['tagname']
+    else:
+        tag = _getframe().f_back.f_code.co_name
     cr = ''
     if len(blob) > 1: 
         cr = '\n'
     return starttag(tag, cr, False, **kw) + endtag(tag, cr, *blob)
 
 def bare(*blob, **kw):
-    tag = _getframe().f_back.f_code.co_name
+    if kw.has_key('tagname'):
+        tag = kw['tagname']
+        del kw['tagname']
+    else:
+        tag = _getframe().f_back.f_code.co_name
     return starttag(tag, '', True, **kw)
 
 def starttag(tag, cr, bare, **kw):
@@ -42,7 +53,12 @@ def starttag(tag, cr, bare, **kw):
 def endtag(tag, cr, *blob): 
     out = ''
     for b in blob:
-        out += b+cr
+        if type(b) == TupleType or \
+                type(b) == ListType:
+            for i in b:
+                out += i+cr
+        else:
+            out += b+cr
     out += '</'+tag+'>'
     return out
 
@@ -51,12 +67,34 @@ def endtag(tag, cr, *blob):
 #
 
 # Special Tags 
+#  - maybe should just replace this with a doctype tag and have html act 
+#    normally?
+
 def html(*blob, **kw): 
     out = ''
-    if not kw.has_key('doctype') or \
-            kw['doctype'] == 'wc3':
+    if not kw.has_key('doctype'): 
         out = wc3doc
-    return out+wrap(*blob)
+    else:
+        if kw['doctype'] == 'wc3':
+            out = wc3doc
+        else:
+            out = kw['doctype']
+        del kw['doctype']
+    return out+wrap(*blob, **kw)
+
+
+# the below is an experiment in trying to do the rest of this 
+# procedurally. it didn't work, but I am including it so as to 
+# seal off a blind alley for the next time I give it a shot.
+
+#wrap_tags = [ 'a', 'abbr', 'address' ] 
+#namespace = locals() 
+
+#for tag in wrap_tags:
+    #kw['tagname'] = tag
+#    def inner(*blob, **kw):
+#        return wrap(*blob, **kw)
+#    namespace[tag] = lambda *blob, **kw: wrap(*blob, **kw, tagname=tag)
 
 # Tags requiring an end tag. 
 
@@ -68,7 +106,7 @@ def abbr(*blob, **kw):
 
 def address(*blob, **kw):
     return wrap(*blob, **kw)
-
+  
 def b(*blob, **kw):
     return wrap(*blob, **kw)
 
@@ -152,8 +190,9 @@ def h6(*blob, **kw):
 def head(*blob, **kw):
     return wrap(*blob, **kw)
 
-def html(*blob, **kw):
-    return wrap(*blob, **kw)
+#defined specially elsewhere, for now.
+#def html(*blob, **kw):
+#    return wrap(*blob, **kw)
 
 def i(*blob, **kw):
     return wrap(*blob, **kw)
@@ -299,6 +338,36 @@ def img(*blob, **kw):
 def input(*blob, **kw):
     return bare(*blob, **kw)
 
+# input subtypes, shortcuts for forms.
+
+def submit(name, label='', image='', id='', class_=''):
+    kw = {'type':'submit'} 
+    if label:
+        kw['value'] = label
+    if image:
+        kw['src'] = image
+    if class_:
+        kw['class_'] = class_
+    if id:
+        kw['id'] = id
+    
+    return input(**kw)
+
+def passw(label='', image='', id='', class_=''):
+    kw = {'type':'password'} 
+    if label:
+        kw['value'] = label
+    if image:
+        kw['src'] = image
+    if class_:
+        kw['class_'] = class_
+    if id:
+        kw['id'] = id
+    
+    return input(**kw)
+
+#end input subtypes
+
 def link(*blob, **kw):
     return bare(*blob, **kw)
 
@@ -308,6 +377,26 @@ def meta(*blob, **kw):
 def param(*blob, **kw):
     return bare(*blob, **kw)
 
+# some utility functions for defining new divs and spans
+# these are marginally useful, but more informative as an 
+# example for making your own, similar functions.
 
+def newelt(elt, class_='', id=''):
+    if not class_ and not id: 
+        print 'must define class or id'
+        return False
+    def inner(*blob, **kw):
+        if class_:
+            kw['class_'] = class_
+        if id:
+            kw['id'] = id
+        #this may be unsafe if you don't do 'from pfh import *'
+        return globals()[elt](*blob, **kw)
+    return inner
+
+def newdiv(class_='', id=''): 
+    return newelt('div', class_, id)   
+def newspan(class_='', id=''):
+    return newelt('span', class_, id)
 
 
