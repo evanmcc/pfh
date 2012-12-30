@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import unittest
-from pfh import *
-import random
+from __future__ import absolute_import
+
+from unittest import TestCase, main
+from __init__ import *
 from time import sleep
 
 special_tags = [ 'html' ]
@@ -13,7 +14,7 @@ wrap_tags = ['a', 'abbr', 'address', 'b', 'bdo', 'big',
              'fieldset', 'form', 'frameset', 'h1', 'h2', 'h3',
              'h4', 'h5', 'h6', 'head', 'i', 'iframe', 
              'ins', 'kbd', 'label', 'legend', 'li', 'map', 'menu', 
-             'noframes', 'noscript', 'object', 'ol', 'optgroup', 
+             'noframes', 'noscript', 'ol', 'optgroup', 
              'option', 'p', 'pre', 'q', 'samp', 'script', 'select', 
              'small', 'span', 'strong', 'style', 'sub', 'sup', 
              'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 
@@ -23,7 +24,7 @@ bare_tags = ['area', 'base', 'br', 'col', 'frame', 'hr', 'img', 'input']
 
 attr_list = ['name', 'id', 'class', 'flarg'] 
 
-class test_pfh(unittest.TestCase):
+class test_pfh(TestCase):
     def setUp(self):
         pass
 
@@ -53,7 +54,14 @@ class test_pfh(unittest.TestCase):
             d[attr] = attr
             at += '%s=\"%s\" ' % (attr, attr)
         at = at[:-1]
-        assert(a('foo', **d) == "<a %s>foo</a>" % at)
+        results = a('foo', **d).split()[1:]
+        results[-1] = results[-1].split('>')[0]
+        for result in results:
+            l = attr_list[:]
+            r = result.split('=')[0]
+            assert(r in l)
+            l.remove(r)
+            assert(r not in l)
 
     def test_bare_attrs(self):
         d = {}
@@ -63,13 +71,20 @@ class test_pfh(unittest.TestCase):
             d[attr] = attr
             at += '%s=\"%s\" ' % (attr, attr)
         at = at[:-1]
-        assert(input(**d) == "<input %s/>" % at)
+        results = input(**d).split()[1:]
+        results[-1] = results[-1].split('>')[0]
+        for result in results:
+            l = attr_list[:]
+            r = result.split('=')[0]
+            assert(r in l)
+            l.remove(r)
+            assert(r not in l)
 
     def test_factories(self):
         content = newdiv(class_='content')
-        content_id = newdiv(id='content')
+        content_id = newdiv(id_='content')
         freaky = newspan(class_='freaky')
-        freaky_id = newspan(id='freaky')
+        freaky_id = newspan(id_='freaky')
         assert(content('foo') ==
                "<div class=\"content\">foo</div>")
         assert(content_id('foo') ==
@@ -80,4 +95,4 @@ class test_pfh(unittest.TestCase):
                "<span id=\"freaky\">foo</span>")
 
 if __name__ == '__main__':
-    unittest.main()
+    main()
